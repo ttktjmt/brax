@@ -94,6 +94,7 @@ def play_trajectory(path):
 @flask_app.route('/simulate/<path:path>', methods=['GET'])
 def simulate(path):
   """Simulates a brax system from a local file path."""
+  print(f"Input path received: {path}")
   sys = mjcf.load(path)
   pipeline_type = request.args.get('pipeline', 'generalized')
   pipeline = {
@@ -102,9 +103,9 @@ def simulate(path):
       'spring': spring,
       'mujoco': _MujocoPipeline,
   }[pipeline_type]
-  steps = int(request.args.get('steps', 1000))
+  steps = int(request.args.get('steps', 100))
   act_fn = request.args.get('act', 'sin')
-  solver_iterations = int(request.args.get('solver_iterations', 100))
+  solver_iterations = int(request.args.get('solver_iterations', 10))
   add_act = request.args.get('add_act', 'false').lower() == 'true'
 
   if solver_iterations > 0:
