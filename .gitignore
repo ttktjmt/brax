@@ -60,3 +60,5 @@ sysinfo.txt
 *.unitypackage
 
 UnitySDK.log
+
+venv
