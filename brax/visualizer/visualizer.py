@@ -15,6 +15,8 @@
 # pylint:disable=g-multiple-import
 """Replay stored trajectories and simulate brax systems."""
 
+import eventlet
+eventlet.monkey_patch()
 from wsgiref import simple_server
 from wsgiref import validate
 
@@ -33,10 +35,10 @@ from flask import jsonify
 from flask import request
 from flask import send_from_directory
 import flask_cors
+from flask_socketio import SocketIO, emit
 import jax
 from jax import numpy as jp
 import mujoco
-
 
 PORT = flags.DEFINE_integer(
     name='port', default=8080, help='Port to run server on'
@@ -47,6 +49,8 @@ DEBUG = flags.DEFINE_boolean(
 
 flask_app = flask.Flask(__name__)
 flask_cors.CORS(flask_app)
+
+socketio = SocketIO(flask_app, cors_allowed_origins="*")
 
 
 class _MujocoPipeline:
@@ -157,6 +161,26 @@ def simulate(path):
   return html.render(
       sys, states, height='100vh', colab=False, base_url='/js/viewer.js'
   )
+
+@flask_app.route('/live/<path:path>', methods=['GET'])
+def live_simulate(ws, path):
+  print("Live Simulation!")
+  pass
+
+@socketio.on('connect')
+def on_connect():
+    print("Client connected")
+    emit('message', {'data': 'Connected to server'})
+
+@socketio.on('echo')
+def on_echo(data):
+    print("Received echo:", data)
+    emit('echo_response', data)
+
+@socketio.on('disconnect')
+def on_disconnect():
+    print("Client disconnected")
+
 
 
 def main(_):
